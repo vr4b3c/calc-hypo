@@ -2,8 +2,10 @@
 // calculator.js
 // Vrabče, tady máš čistý kód pro obsluhu kalkulačky
 
-// Načtení konfigu
-importConfig();
+// Počkat na načtení DOM
+document.addEventListener('DOMContentLoaded', function() {
+    importConfig();
+});
 
 function importConfig() {
     if (typeof CONFIG === "undefined") {
@@ -11,46 +13,125 @@ function importConfig() {
         return;
     }
 
-    // Naplnění dropdownu sazeb
-    const rateSelect = document.getElementById("interestRate");
-    CONFIG.interestRates.forEach(r => {
-        const opt = document.createElement("option");
-        opt.value = r.rate;
-        opt.textContent = `${r.years} let – ${r.rate}%`;
-        rateSelect.appendChild(opt);
-    });
-
     // Nastavení rozsahů z configu
     document.getElementById("propertyValue").min = CONFIG.property.min;
     document.getElementById("propertyValue").max = CONFIG.property.max;
     document.getElementById("propertyValue").step = CONFIG.property.step;
+    document.getElementById("propertyValue").value = CONFIG.property.default;
 
     document.getElementById("loanAmount").min = CONFIG.loan.min;
     document.getElementById("loanAmount").max = CONFIG.loan.max;
     document.getElementById("loanAmount").step = CONFIG.loan.step;
+    document.getElementById("loanAmount").value = CONFIG.loan.default;
 
-    // Init hodnot
+    document.getElementById("years").min = CONFIG.years.min;
+    document.getElementById("years").max = CONFIG.years.max;
+    document.getElementById("years").step = CONFIG.years.step;
+    document.getElementById("years").value = CONFIG.years.default;
+
+    document.getElementById("interestRate").min = CONFIG.interestRate.min;
+    document.getElementById("interestRate").max = CONFIG.interestRate.max;
+    document.getElementById("interestRate").step = CONFIG.interestRate.step;
+    document.getElementById("interestRate").value = CONFIG.interestRate.default;
+
+    // Init hodnot a formátování
+    propertyValueText.value = formatNumberWithSpaces(propertyValue.value);
+    loanAmountText.value = formatNumberWithSpaces(loanAmount.value);
+    yearsText.value = years.value;
+    interestRateText.value = interestRate.value;
+
     updateUI();
+}
+
+// Pomocné funkce pro formátování
+function formatNumberWithSpaces(num) {
+    return Number(num).toLocaleString("cs-CZ").replace(/,/g, ' ');
+}
+
+function parseFormattedNumber(str) {
+    return str.replace(/\s/g, '').replace(/,/g, '');
 }
 
 // Form elements
 const propertyValue = document.getElementById("propertyValue");
+const propertyValueText = document.getElementById("propertyValueText");
 const loanAmount = document.getElementById("loanAmount");
+const loanAmountText = document.getElementById("loanAmountText");
 const years = document.getElementById("years");
+const yearsText = document.getElementById("yearsText");
 const interestRate = document.getElementById("interestRate");
+const interestRateText = document.getElementById("interestRateText");
 
 const monthlyPayment = document.getElementById("monthlyPayment");
 const totalPayment = document.getElementById("totalPayment");
 
-// Event listenery
-[propertyValue, loanAmount, years, interestRate].forEach(el => {
-    el.addEventListener("input", updateUI);
+// Synchronizace range a text inputů
+propertyValue.addEventListener("input", () => {
+    propertyValueText.value = formatNumberWithSpaces(propertyValue.value);
+    updateUI();
+});
+
+propertyValueText.addEventListener("focus", () => {
+    propertyValueText.value = propertyValue.value;
+});
+propertyValueText.addEventListener("blur", () => {
+    propertyValueText.value = formatNumberWithSpaces(propertyValue.value);
+});
+propertyValueText.addEventListener("input", () => {
+    const parsed = parseFormattedNumber(propertyValueText.value);
+    if (parsed && !isNaN(parsed)) {
+        propertyValue.value = parsed;
+        updateUI();
+    }
+});
+
+loanAmount.addEventListener("input", () => {
+    loanAmountText.value = formatNumberWithSpaces(loanAmount.value);
+    updateUI();
+});
+
+loanAmountText.addEventListener("focus", () => {
+    loanAmountText.value = loanAmount.value;
+});
+loanAmountText.addEventListener("blur", () => {
+    loanAmountText.value = formatNumberWithSpaces(loanAmount.value);
+});
+loanAmountText.addEventListener("input", () => {
+    const parsed = parseFormattedNumber(loanAmountText.value);
+    if (parsed && !isNaN(parsed)) {
+        loanAmount.value = parsed;
+        updateUI();
+    }
+});
+
+years.addEventListener("input", () => {
+    yearsText.value = years.value;
+    updateUI();
+});
+yearsText.addEventListener("input", () => {
+    years.value = yearsText.value;
+    updateUI();
+});
+
+interestRate.addEventListener("input", () => {
+    interestRateText.value = interestRate.value;
+    updateUI();
+});
+interestRateText.addEventListener("input", () => {
+    interestRate.value = interestRateText.value;
+    updateUI();
 });
 
 function updateUI() {
-    document.getElementById("propertyValueDisplay").textContent = format(propertyValue.value) + " Kč";
-    document.getElementById("loanDisplay").textContent = format(loanAmount.value) + " Kč";
-    document.getElementById("yearsDisplay").textContent = years.value + " let";
+    // Synchronizace text inputů s aktuálními hodnotami
+    if (document.activeElement !== propertyValueText) {
+        propertyValueText.value = formatNumberWithSpaces(propertyValue.value);
+    }
+    if (document.activeElement !== loanAmountText) {
+        loanAmountText.value = formatNumberWithSpaces(loanAmount.value);
+    }
+    yearsText.value = years.value;
+    interestRateText.value = interestRate.value;
 
     // Min/max texty
     document.getElementById("propertyValueMin").textContent = format(propertyValue.min) + " Kč";
