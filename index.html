@@ -1,0 +1,68 @@
+ 
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypoteční kalkulačka</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-light py-4">
+<div class="container">
+    <h1 class="mb-4">Hypoteční kalkulačka</h1>
+    <div class="row">
+        <div class="col-md-7">
+            <form id="hypoForm" class="card p-4 shadow-sm">
+                <div class="mb-3">
+                    <label class="form-label">Hodnota nemovitosti</label>
+                    <input type="range" class="form-range" id="propertyValue" min="300000" max="38000000" step="50000">
+                    <div class="d-flex justify-content-between">
+                        <span id="propertyValueMin"></span>
+                        <span id="propertyValueDisplay"></span>
+                        <span id="propertyValueMax"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Kolik chcete půjčit?</label>
+                    <input type="range" class="form-range" id="loanAmount" min="300000" max="30000000" step="50000">
+                    <div class="d-flex justify-content-between">
+                        <span id="loanMin"></span>
+                        <span id="loanDisplay"></span>
+                        <span id="loanMax"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Doba splácení (roky)</label>
+                    <input type="range" class="form-range" id="years" min="5" max="30" step="1">
+                    <div class="d-flex justify-content-between">
+                        <span>5 let</span>
+                        <span id="yearsDisplay"></span>
+                        <span>30 let</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Úroková sazba</label>
+                    <select id="interestRate" class="form-select"></select>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card p-4 shadow-sm">
+                <h4>Měsíční splátka</h4>
+                <h2 id="monthlyPayment" class="text-primary"></h2>
+                <hr>
+                <p>Celkem zaplatíte: <strong id="totalPayment"></strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script src="calculator.js"></script>
+</body>
+</html>
