@@ -398,6 +398,12 @@ function nextStep() {
     currentStep++;
     document.getElementById(`step${currentStep}`).classList.remove('d-none');
     
+    // Update summary if moving to step 4
+    if (currentStep === 4) {
+      calculateMonthlyPayment();
+      updateSummary();
+    }
+    
     // Update progress bar
     updateProgressBar();
     
