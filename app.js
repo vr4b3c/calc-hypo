@@ -61,7 +61,6 @@ function initializeUI() {
   document.getElementById('prevButton5').textContent = CONFIG.labels.prevButton;
   
   document.getElementById('submitButton').textContent = CONFIG.labels.submitButton;
-  document.getElementById('otherAmountLabel').textContent = CONFIG.labels.otherAmount;
 
   // Set currency symbols
   document.getElementById('currencySymbol1').textContent = CONFIG.currency;
@@ -79,20 +78,29 @@ function initializeStep1() {
   
   // Generate property type buttons from config
   CONFIG.propertyTypes.forEach(type => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'btn btn-outline-primary btn-lg';
-    button.textContent = type.label;
-    button.dataset.value = type.value;
-    button.dataset.label = type.label;
+    const box = document.createElement('div');
+    box.className = 'property-type-box';
+    box.dataset.value = type.value;
+    box.dataset.label = type.label;
     
-    button.addEventListener('click', function() {
-      // Remove active class from all buttons
-      container.querySelectorAll('button').forEach(btn => {
+    const icon = document.createElement('div');
+    icon.className = 'property-type-icon';
+    icon.textContent = type.icon;
+    
+    const label = document.createElement('div');
+    label.className = 'property-type-label';
+    label.textContent = type.label;
+    
+    box.appendChild(icon);
+    box.appendChild(label);
+    
+    box.addEventListener('click', function() {
+      // Remove active class from all boxes
+      container.querySelectorAll('.property-type-box').forEach(btn => {
         btn.classList.remove('active');
       });
       
-      // Add active class to clicked button
+      // Add active class to clicked box
       this.classList.add('active');
       
       // Store selection
@@ -102,16 +110,16 @@ function initializeStep1() {
       document.getElementById('step1Next').disabled = false;
     });
     
-    container.appendChild(button);
+    container.appendChild(box);
   });
   
   // Next button
   document.getElementById('step1Next').addEventListener('click', function() {
     if (formData.propertyType) {
-      // Update step 2 title with selected property type
-      const selectedLabel = CONFIG.propertyTypes.find(t => t.value === formData.propertyType).label;
+      // Update step 2 title with selected property type (genitive case)
+      const selectedType = CONFIG.propertyTypes.find(t => t.value === formData.propertyType);
       document.getElementById('step2Title').textContent = 
-        `${CONFIG.labels.step2Title} ${selectedLabel.toLowerCase()}?`;
+        `${CONFIG.labels.step2Title} ${selectedType.genitive}?`;
       nextStep();
     }
   });
@@ -123,14 +131,42 @@ function initializeStep1() {
 function initializeStep2() {
   const input = document.getElementById('propertyValue');
   
-  // Validate and enable next button
-  input.addEventListener('input', function() {
-    const value = parseFloat(this.value);
-    const isValid = !isNaN(value) && value > 0;
+  // Set default value
+  input.value = '2 000 000';
+  formData.propertyValue = 2000000;
+  document.getElementById('step2Next').disabled = false;
+  
+  // Format number as user types
+  input.addEventListener('input', function(e) {
+    // Remove all non-digit characters
+    let value = this.value.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    if (value.length > 10) {
+      value = value.substring(0, 10);
+    }
+    
+    // Format with spaces
+    if (value) {
+      value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      this.value = value;
+    }
+    
+    // Parse value for validation
+    const numValue = parseFloat(value.replace(/\s/g, ''));
+    const isValid = !isNaN(numValue) && numValue > 0;
     document.getElementById('step2Next').disabled = !isValid;
     
     if (isValid) {
-      formData.propertyValue = value;
+      formData.propertyValue = numValue;
+    }
+  });
+  
+  // Handle Enter key
+  input.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && formData.propertyValue > 0) {
+      e.preventDefault();
+      nextStep();
     }
   });
   
@@ -147,67 +183,106 @@ function initializeStep2() {
  * Initialize Step 3: Loan Amount
  */
 function initializeStep3() {
-  const container = document.getElementById('loanPresetContainer');
-  const customContainer = document.getElementById('customLoanContainer');
   const slider = document.getElementById('loanPercentSlider');
+  const loanInput = document.getElementById('loanAmountInput');
+  let updatingFromSlider = false;
+  let updatingFromInput = false;
   
   // Set slider attributes from config
   slider.min = CONFIG.loanPercentSlider.min;
   slider.max = CONFIG.loanPercentSlider.max;
   slider.step = CONFIG.loanPercentSlider.step;
-  slider.value = 50; // Default value
+  slider.value = 60; // Default value 60%
   
-  // Generate preset buttons from config
-  CONFIG.loanPercentPresets.forEach(percent => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'btn btn-outline-primary btn-lg';
-    button.textContent = `${percent}%`;
-    button.dataset.percent = percent;
-    
-    button.addEventListener('click', function() {
-      // Remove active class from all preset buttons
-      container.querySelectorAll('button').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      
-      // Add active class
-      this.classList.add('active');
-      
-      // Hide custom slider
-      customContainer.classList.add('d-none');
-      
-      // Calculate loan amount
-      const percent = parseFloat(this.dataset.percent);
-      formData.loanPercent = percent;
-      formData.loanAmount = formData.propertyValue * (percent / 100);
-      
-      // Enable next button
-      document.getElementById('step3Next').disabled = false;
-    });
-    
-    container.appendChild(button);
-  });
+  // Initialize displays
+  updateLoanSlider();
+  updateLoanInput();
   
-  // Show custom loan slider button
-  document.getElementById('showCustomLoan').addEventListener('click', function() {
-    // Hide active states on presets
-    container.querySelectorAll('button').forEach(btn => {
-      btn.classList.remove('active');
-    });
+  // Enable next button by default (we have valid default values)
+  document.getElementById('step3Next').disabled = false;
+  
+  // Slider input - updates the input field
+  slider.addEventListener('input', function() {
+    // Limit value to maxAllowed
+    if (parseInt(this.value) > CONFIG.loanPercentSlider.maxAllowed) {
+      this.value = CONFIG.loanPercentSlider.maxAllowed;
+    }
     
-    // Show custom slider
-    customContainer.classList.remove('d-none');
-    
-    // Update values
-    updateLoanSlider();
+    if (!updatingFromInput) {
+      updatingFromSlider = true;
+      updateLoanSlider();
+      updateLoanInput();
+      updatingFromSlider = false;
+    }
     
     // Enable next button
     document.getElementById('step3Next').disabled = false;
   });
   
-  // Slider input
-  slider.addEventListener('input', updateLoanSlider);
+  // Loan amount input - updates the slider
+  loanInput.addEventListener('input', function(e) {
+    // Remove all non-digit characters
+    let value = this.value.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    if (value.length > 10) {
+      value = value.substring(0, 10);
+    }
+    
+    // Format with spaces
+    if (value) {
+      value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      this.value = value;
+    }
+    
+    // Parse and update
+    const numValue = parseFloat(value.replace(/\s/g, ''));
+    if (!isNaN(numValue) && numValue > 0 && formData.propertyValue > 0) {
+      if (!updatingFromSlider) {
+        updatingFromInput = true;
+        
+        // Calculate percentage
+        let percent = (numValue / formData.propertyValue) * 100;
+        
+        // Limit to maxAllowed and min
+        if (percent > CONFIG.loanPercentSlider.maxAllowed) {
+          percent = CONFIG.loanPercentSlider.maxAllowed;
+        } else if (percent < CONFIG.loanPercentSlider.min) {
+          percent = CONFIG.loanPercentSlider.min;
+        }
+        
+        // Recalculate and update input with limited value
+        formData.loanAmount = formData.propertyValue * (percent / 100);
+        const formatted = Math.round(formData.loanAmount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        this.value = formatted;
+        
+        // Round to nearest step
+        percent = Math.round(percent / CONFIG.loanPercentSlider.step) * CONFIG.loanPercentSlider.step;
+        
+        // Ensure within range again after rounding
+        percent = Math.max(CONFIG.loanPercentSlider.min, Math.min(CONFIG.loanPercentSlider.maxAllowed, percent));
+        
+        slider.value = percent;
+        formData.loanPercent = percent;
+        
+        // Update displays
+        document.getElementById('loanPercentDisplay').textContent = percent;
+        
+        updatingFromInput = false;
+      }
+      
+      // Enable next button
+      document.getElementById('step3Next').disabled = false;
+    }
+  });
+  
+  // Handle Enter key
+  loanInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && formData.loanAmount > 0) {
+      e.preventDefault();
+      nextStep();
+    }
+  });
   
   // Navigation buttons
   document.getElementById('step3Prev').addEventListener('click', prevStep);
@@ -216,6 +291,17 @@ function initializeStep3() {
       nextStep();
     }
   });
+}
+
+/**
+ * Update loan input field
+ */
+function updateLoanInput() {
+  const loanInput = document.getElementById('loanAmountInput');
+  if (formData.loanAmount > 0) {
+    const formatted = Math.round(formData.loanAmount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    loanInput.value = formatted;
+  }
 }
 
 /**
@@ -229,7 +315,6 @@ function updateLoanSlider() {
   formData.loanAmount = formData.propertyValue * (percent / 100);
   
   document.getElementById('loanPercentDisplay').textContent = percent;
-  document.getElementById('loanAmountDisplay').textContent = formatNumber(formData.loanAmount);
 }
 
 /**
@@ -237,6 +322,7 @@ function updateLoanSlider() {
  */
 function initializeStep4() {
   const slider = document.getElementById('durationSlider');
+  const paymentInput = document.getElementById('monthlyPaymentInput');
   
   // Set slider attributes from config
   slider.min = CONFIG.durationSlider.min;
@@ -252,6 +338,7 @@ function initializeStep4() {
   slider.addEventListener('input', function() {
     formData.durationYears = parseInt(this.value);
     updateDurationDisplay();
+    updateMonthlyPaymentInput();
   });
   
   // Navigation buttons
@@ -261,6 +348,17 @@ function initializeStep4() {
     updateStep5Summary();
     nextStep();
   });
+}
+
+/**
+ * Update monthly payment input field
+ */
+function updateMonthlyPaymentInput() {
+  const paymentInput = document.getElementById('monthlyPaymentInput');
+  if (formData.monthlyPayment > 0) {
+    const formatted = Math.round(formData.monthlyPayment).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    paymentInput.value = formatted;
+  }
 }
 
 /**
@@ -279,7 +377,6 @@ function updateSummary() {
   document.getElementById('summaryPropertyValue').textContent = formatNumber(formData.propertyValue);
   document.getElementById('summaryLoanAmount').textContent = formatNumber(formData.loanAmount);
   document.getElementById('summaryDuration').textContent = formData.durationYears;
-  document.getElementById('monthlyPayment').textContent = formatNumber(formData.monthlyPayment);
 }
 
 /**
@@ -398,10 +495,17 @@ function nextStep() {
     currentStep++;
     document.getElementById(`step${currentStep}`).classList.remove('d-none');
     
+    // Update data when entering step 3
+    if (currentStep === 3) {
+      updateLoanSlider();
+      updateLoanInput();
+    }
+    
     // Update summary if moving to step 4
     if (currentStep === 4) {
       calculateMonthlyPayment();
       updateSummary();
+      updateMonthlyPaymentInput();
     }
     
     // Update progress bar
@@ -436,9 +540,18 @@ function prevStep() {
  * Update progress bar
  */
 function updateProgressBar() {
-  const progress = (currentStep / totalSteps) * 100;
-  document.getElementById('progressBar').style.width = `${progress}%`;
-  document.getElementById('currentStepNumber').textContent = currentStep;
+  // Update segmented border
+  const segments = document.querySelectorAll('.progress-segment');
+  segments.forEach((segment, index) => {
+    const step = index + 1;
+    segment.classList.remove('completed', 'active');
+    
+    if (step < currentStep) {
+      segment.classList.add('completed');
+    } else if (step === currentStep) {
+      segment.classList.add('active');
+    }
+  });
 }
 
 /**

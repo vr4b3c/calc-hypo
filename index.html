@@ -6,29 +6,170 @@
     <title>Hypoteční kalkulačka</title>
     <!-- Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .progress-border-container {
+            position: relative;
+            width: 100%;
+            height: 5px;
+            overflow: hidden;
+            border-radius: 0.375rem 0.375rem 0 0;
+        }
+        .progress-border {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            background-color: #e9ecef;
+        }
+        .progress-segment {
+            flex: 1;
+            height: 100%;
+            background-color: #e9ecef;
+            transition: background-color 0.3s ease;
+            border-right: 1px solid #fff;
+        }
+        .progress-segment:last-child {
+            border-right: none;
+        }
+        .progress-segment.completed {
+            background-color: #0d6efd;
+        }
+        .progress-segment.active {
+            background-color: #0d6efd;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .property-type-box {
+            flex: 0 0 calc(20% - 1rem);
+            min-width: 110px;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0.75rem;
+        }
+        .property-type-box:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+            transform: translateY(-2px);
+        }
+        .property-type-box.active {
+            border-color: #0d6efd;
+            background-color: #0d6efd;
+            color: white;
+        }
+        .property-type-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        .property-type-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+        }
+        @media (max-width: 768px) {
+            .property-type-box {
+                flex: 0 0 calc(33.333% - 0.75rem);
+            }
+        }
+        @media (max-width: 576px) {
+            .property-type-box {
+                flex: 0 0 calc(50% - 0.75rem);
+                min-width: 100px;
+            }
+            .property-type-icon {
+                font-size: 32px;
+            }
+            .property-type-label {
+                font-size: 11px;
+            }
+        }
+        .big-input-container {
+            text-align: center;
+            margin: 3rem auto;
+            max-width: 600px;
+            padding: 0 2rem;
+        }
+        #step4 .big-input-container {
+            max-width: 400px;
+        }
+        .big-input {
+            border: none;
+            background: transparent;
+            font-size: 72px;
+            font-weight: 300;
+            text-align: right;
+            width: 100%;
+            outline: none;
+            color: #000000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            letter-spacing: -2px;
+        }
+        .big-input:focus {
+            color: #212529;
+        }
+        .big-input::placeholder {
+            color: #dee2e6;
+        }
+        .currency-large {
+            font-size: 72px;
+            font-weight: 700;
+            color: #212529;
+            margin-left: 10px;
+        }
+        .input-helper {
+            margin-top: 1rem;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        @media (max-width: 768px) {
+            .big-input {
+                font-size: 48px;
+            }
+            .currency-large {
+                font-size: 48px;
+            }
+        }
+    </style>
 </head>
 <body class="bg-light">
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <!-- Progress Bar -->
-                <div class="mb-4">
-                    <div class="progress" style="height: 5px;">
-                        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 20%"></div>
-                    </div>
-                    <div class="text-center mt-2">
-                        <small class="text-muted">Krok <span id="currentStepNumber">1</span> z 5</small>
-                    </div>
+                <!-- Hlavní nadpis -->
+                <div class="text-center mb-5">
+                    <h1 class="display-4 fw-bold mb-3">Hypoteční kalkulačka</h1>
+                    <p class="lead text-muted">Zjistěte si orientační výši měsíční splátky hypotéky během pár minut. Vyplňte jednoduché kroky a my vám připravíme nezávaznou cenovou nabídku.</p>
                 </div>
 
                 <!-- Wizard Card -->
                 <div class="card shadow">
+                    <!-- Segmented Progress Border -->
+                    <div class="progress-border-container">
+                        <div class="progress-border" id="progressBorder">
+                            <div class="progress-segment" data-step="1"></div>
+                            <div class="progress-segment" data-step="2"></div>
+                            <div class="progress-segment" data-step="3"></div>
+                            <div class="progress-segment" data-step="4"></div>
+                            <div class="progress-segment" data-step="5"></div>
+                        </div>
+                    </div>
+                    
                     <div class="card-body p-4">
                         <!-- Step 1: Property Type Selection -->
                         <div id="step1" class="wizard-step">
-                            <h2 class="mb-3" id="step1Title"></h2>
-                            <p class="text-muted mb-4" id="step1Subtitle"></p>
-                            <div class="d-grid gap-3" id="propertyTypeContainer">
+                            <h2 class="mb-3 text-center" id="step1Title"></h2>
+                            <p class="text-muted mb-4 text-center" id="step1Subtitle"></p>
+                            <div class="d-flex flex-wrap gap-3 justify-content-center" id="propertyTypeContainer">
                                 <!-- Property types will be generated by JS -->
                             </div>
                             <div class="mt-4">
@@ -40,15 +181,14 @@
 
                         <!-- Step 2: Property Value -->
                         <div id="step2" class="wizard-step d-none">
-                            <h2 class="mb-3" id="step2Title"></h2>
-                            <p class="text-muted mb-4" id="step2Subtitle"></p>
-                            <div class="mb-4">
-                                <div class="input-group input-group-lg">
-                                    <input type="number" class="form-control form-control-lg text-end" 
-                                           id="propertyValue" placeholder="0" min="0" step="100000">
-                                    <span class="input-group-text" id="currencySymbol1"></span>
+                            <h2 class="mb-3 text-center" id="step2Title"></h2>
+                            <p class="text-muted mb-4 text-center" id="step2Subtitle"></p>
+                            <div class="big-input-container">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <input type="text" class="big-input" 
+                                           id="propertyValue" placeholder="2 000 000" inputmode="numeric">
+                                    <span class="currency-large" id="currencySymbol1"></span>
                                 </div>
-                                <div class="form-text">Zadejte celkovou hodnotu nemovitosti</div>
                             </div>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-outline-secondary btn-lg" id="step2Prev">
@@ -62,23 +202,22 @@
 
                         <!-- Step 3: Loan Amount -->
                         <div id="step3" class="wizard-step d-none">
-                            <h2 class="mb-3" id="step3Title"></h2>
-                            <p class="text-muted mb-4" id="step3Subtitle"></p>
-                            <div class="mb-4">
-                                <div class="d-grid gap-3 mb-3" id="loanPresetContainer">
-                                    <!-- Loan presets will be generated by JS -->
+                            <h2 class="mb-3 text-center" id="step3Title"></h2>
+                            <p class="text-muted mb-4 text-center" id="step3Subtitle"></p>
+                            
+                            <!-- Big Loan Amount Input -->
+                            <div class="big-input-container">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <input type="text" class="big-input" 
+                                           id="loanAmountInput" placeholder="0" inputmode="numeric">
+                                    <span class="currency-large" id="currencySymbol2"></span>
                                 </div>
-                                <button type="button" class="btn btn-outline-primary w-100" id="showCustomLoan">
-                                    <span id="otherAmountLabel"></span>
-                                </button>
                             </div>
-                            <!-- Custom Loan Slider -->
-                            <div id="customLoanContainer" class="d-none mb-4">
-                                <label for="loanPercentSlider" class="form-label">Procento půjčky: <strong id="loanPercentDisplay">50</strong>%</label>
+                            
+                            <!-- Loan Percentage Slider -->
+                            <div id="customLoanContainer" class="mb-4">
+                                <label for="loanPercentSlider" class="form-label text-center d-block">Procento půjčky: <strong id="loanPercentDisplay">60</strong>%</label>
                                 <input type="range" class="form-range" id="loanPercentSlider">
-                                <div class="form-text">
-                                    Výše půjčky: <strong id="loanAmountDisplay">0</strong> <span id="currencySymbol2"></span>
-                                </div>
                             </div>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-outline-secondary btn-lg" id="step3Prev">
@@ -92,13 +231,28 @@
 
                         <!-- Step 4: Duration -->
                         <div id="step4" class="wizard-step d-none">
-                            <h2 class="mb-3" id="step4Title"></h2>
-                            <p class="text-muted mb-4" id="step4Subtitle"></p>
+                            <h2 class="mb-3 text-center" id="step4Title"></h2>
+                            <p class="text-muted mb-4 text-center" id="step4Subtitle"></p>
+                            
+                            <!-- Duration Slider -->
                             <div class="mb-4">
-                                <label for="durationSlider" class="form-label">
+                                <label for="durationSlider" class="form-label text-center d-block">
                                     Délka splácení: <strong id="durationDisplay">15</strong> let
                                 </label>
                                 <input type="range" class="form-range" id="durationSlider">
+                            </div>
+                            
+                            <!-- Big Monthly Payment Input -->
+                            <div class="big-input-container">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <input type="text" class="big-input" 
+                                           id="monthlyPaymentInput" placeholder="0" inputmode="numeric" readonly>
+                                    <span class="currency-large" id="currencySymbol3"></span>
+                                </div>
+                                <div class="text-center mt-2">
+                                
+                                    <h2 class="mb-3 text-center">měsíční splátka</h2>
+                                </div>
                             </div>
                             <!-- Summary Display -->
                             <div class="alert alert-info mb-4">
@@ -109,7 +263,7 @@
                                         <strong>Hodnota nemovitosti:</strong>
                                     </div>
                                     <div class="col-6 text-end">
-                                        <span id="summaryPropertyValue">0</span> <span id="currencySymbol3"></span>
+                                        <span id="summaryPropertyValue">0</span> <span id="currencySymbol4"></span>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -117,7 +271,7 @@
                                         <strong>Výše úvěru:</strong>
                                     </div>
                                     <div class="col-6 text-end">
-                                        <span id="summaryLoanAmount">0</span> <span id="currencySymbol4"></span>
+                                        <span id="summaryLoanAmount">0</span> <span id="currencySymbol5"></span>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -126,15 +280,6 @@
                                     </div>
                                     <div class="col-6 text-end">
                                         <span id="summaryDuration">0</span> let
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <h5>Měsíční splátka:</h5>
-                                    </div>
-                                    <div class="col-6 text-end">
-                                        <h5 class="text-primary"><span id="monthlyPayment">0</span> <span id="currencySymbol5"></span></h5>
                                     </div>
                                 </div>
                             </div>
@@ -150,8 +295,8 @@
 
                         <!-- Step 5: Contact Form -->
                         <div id="step5" class="wizard-step d-none">
-                            <h2 class="mb-3" id="step5Title"></h2>
-                            <p class="text-muted mb-4" id="step5Subtitle"></p>
+                            <h2 class="mb-3 text-center" id="step5Title"></h2>
+                            <p class="text-muted mb-4 text-center" id="step5Subtitle"></p>
                             <form id="contactForm" class="mb-4">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Jméno a příjmení *</label>

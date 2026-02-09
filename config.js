@@ -5,11 +5,11 @@
 const CONFIG = {
   // Property types available in Step 1
   propertyTypes: [
-    { value: "byt", label: "Byt" },
-    { value: "pozemek", label: "Pozemek" },
-    { value: "rodinny-dum", label: "Rodinný dům" },
-    { value: "chata-chalupa", label: "Chata/chalupa" },
-    { value: "bytovy-dum", label: "Bytový dům" }
+    { value: "byt", label: "Byt", icon: "🏢", genitive: "bytu" },
+    { value: "pozemek", label: "Pozemek", icon: "🌳", genitive: "pozemku" },
+    { value: "rodinny-dum", label: "Rodinný dům", icon: "🏠", genitive: "rodinného domu" },
+    { value: "chata-chalupa", label: "Chata/chalupa", icon: "🏡", genitive: "chaty/chalupy" },
+    { value: "bytovy-dum", label: "Bytový dům", icon: "🏘️", genitive: "bytového domu" }
   ],
 
   // Predefined loan percentage presets for Step 3
@@ -17,15 +17,16 @@ const CONFIG = {
 
   // Loan percentage slider configuration for Step 3
   loanPercentSlider: {
-    min: 5,
+    min: 10,
     max: 100,
-    step: 5
+    step: 5,
+    maxAllowed: 80  // Maximum allowed value
   },
 
   // Duration slider configuration for Step 4
   durationSlider: {
     min: 1,
-    max: 30,
+    max: 40,
     step: 1
   },
 
