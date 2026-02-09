@@ -68,6 +68,9 @@ function initializeUI() {
   document.getElementById('currencySymbol3').textContent = CONFIG.currency;
   document.getElementById('currencySymbol4').textContent = CONFIG.currency;
   document.getElementById('currencySymbol5').textContent = CONFIG.currency;
+  document.getElementById('currencySymbol6').textContent = CONFIG.currency;
+  document.getElementById('currencySymbol7').textContent = CONFIG.currency;
+  document.getElementById('currencySymbol8').textContent = CONFIG.currency;
 }
 
 /**
@@ -374,9 +377,25 @@ function updateDurationDisplay() {
  * Update summary in step 4
  */
 function updateSummary() {
+  // Basic info
   document.getElementById('summaryPropertyValue').textContent = formatNumber(formData.propertyValue);
   document.getElementById('summaryLoanAmount').textContent = formatNumber(formData.loanAmount);
   document.getElementById('summaryDuration').textContent = formData.durationYears;
+  document.getElementById('summaryInterestRate').textContent = CONFIG.interestRate;
+  document.getElementById('summaryMonthlyPayment').textContent = formatNumber(formData.monthlyPayment);
+  
+  // Calculate total payment
+  const totalPayment = formData.monthlyPayment * formData.durationYears * 12;
+  document.getElementById('summaryTotalPayment').textContent = formatNumber(totalPayment);
+  
+  // Calculate overpayment (total paid - principal)
+  const overpayment = totalPayment - formData.loanAmount;
+  document.getElementById('summaryOverpayment').textContent = formatNumber(overpayment);
+  
+  // RPSN (for simplicity, using the interest rate as RPSN)
+  // In reality, RPSN includes all costs, but we'll use interest rate as approximation
+  const rpsn = CONFIG.interestRate;
+  document.getElementById('summaryRPSN').textContent = rpsn.toFixed(2);
 }
 
 /**

@@ -31,7 +31,7 @@ const CONFIG = {
   },
 
   // Annual interest rate for mortgage calculation (in percentage)
-  interestRate: 4.5,
+  interestRate: 5,
 
   // Currency symbol
   currency: "Kč",
