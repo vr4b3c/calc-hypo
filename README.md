@@ -56,12 +56,12 @@ Nahrajte všechny soubory na váš webový server:
 Otevřete soubor `send.php` a upravte následující řádky:
 
 ```php
-// Řádek 51 - změňte na váš e-mail
+// Řádek 57-58 - změňte na váš e-mail a doménu
 $toEmail = 'info@example.com'; // CHANGE THIS TO YOUR EMAIL
-
-// Řádek 59 - změňte na vaši doménu
-'From: noreply@yourdomain.com', // CHANGE THIS TO YOUR DOMAIN
+$fromDomain = 'yourdomain.com'; // CHANGE THIS TO YOUR DOMAIN
 ```
+
+**DŮLEŽITÉ:** Tyto hodnoty musí být změněny před nasazením do produkce. Aplikace obsahuje kontrolu, která vrátí chybu, pokud zůstanou výchozí hodnoty.
 
 ### 3. Nastavení konfigurace (volitelné)
 
@@ -147,7 +147,8 @@ Před nasazením do produkce:
 2. **Implementujte rate limiting** pro ochranu před spamem
 3. **Validujte a sanitizujte** všechny vstupy na serveru
 4. **Použijte HTTPS** pro šifrovanou komunikaci
-5. **Nastavte správné CORS** politiky podle vašich potřeb
+5. **Nastavte správné CORS** politiky - v `send.php` změňte `header('Access-Control-Allow-Origin: *');` na konkrétní doménu (např. `https://yourdomain.com`)
+6. **Aktualizujte email konfiguraci** v `send.php` (viz sekce Konfigurace PHP maileru výše)
 
 ### Přizpůsobení
 

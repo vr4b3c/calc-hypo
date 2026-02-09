@@ -8,6 +8,8 @@
 header('Content-Type: application/json');
 
 // Allow CORS if needed (adjust as necessary for production)
+// WARNING: Using '*' allows any origin. Replace with specific domain in production!
+// Example: header('Access-Control-Allow-Origin: https://yourdomain.com');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -55,6 +57,21 @@ if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
 
 // Configuration - Change this to your email address
 $toEmail = 'info@example.com'; // CHANGE THIS TO YOUR EMAIL
+$fromDomain = 'yourdomain.com'; // CHANGE THIS TO YOUR DOMAIN
+
+// Validate that placeholder values have been changed
+if ($toEmail === 'info@example.com') {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Email configuration error: Please update $toEmail in send.php']);
+    exit;
+}
+
+if ($fromDomain === 'yourdomain.com') {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Email configuration error: Please update $fromDomain in send.php']);
+    exit;
+}
+
 $subject = 'Nová poptávka z hypoteční kalkulačky';
 
 // Build email message
@@ -62,7 +79,7 @@ $message = buildEmailMessage($data);
 
 // Email headers
 $headers = [
-    'From: noreply@yourdomain.com', // CHANGE THIS TO YOUR DOMAIN
+    'From: noreply@' . $fromDomain,
     'Reply-To: ' . $data['email'],
     'X-Mailer: PHP/' . phpversion(),
     'Content-Type: text/html; charset=UTF-8'
